@@ -1,36 +1,31 @@
 #include <stdio.h>
 #include <string.h>
 #include <mpi.h>
-
+ 
 int main(int argc, char *argv[]) {
-    int rank, size;
-    char message[100];
-
+    int rank;
+    char msg[100];
+ 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    if (size != 4) {
-        if (rank == 0) printf("Run with exactly 4 processes.\n");
-        MPI_Finalize();
-        return 1;
-    }
-
-    if (rank == 0) {
-        for (int source = 1; source <= 3; source++) {
-            MPI_Recv(message, 100, MPI_CHAR, source, 0,
-                     MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            printf("From process %d: %s\n", source, message);
+ 
+    if (rank == 1) {
+        char s[] = "Bangalore";
+        MPI_Send(s, strlen(s) + 1, MPI_CHAR, 0, 1, MPI_COMM_WORLD);
+    } else if (rank == 2) {
+        char s[] = "Ramaiah Institute of Technology";
+        MPI_Send(s, strlen(s) + 1, MPI_CHAR, 0, 2, MPI_COMM_WORLD);
+    } else if (rank == 3) {
+        char s[] = "Information Science and Engineering";
+        MPI_Send(s, strlen(s) + 1, MPI_CHAR, 0, 3, MPI_COMM_WORLD);
+    } else if (rank == 0) {
+        for (int i = 1; i <= 3; i++) {
+            MPI_Recv(msg, 100, MPI_CHAR, i, i, MPI_COMM_WORLD,
+                     MPI_STATUS_IGNORE);
+            printf("Process %d sent: %s\n", i, msg);
         }
-    } else {
-        if (rank == 1) strcpy(message, "Bangalore");
-        else if (rank == 2) strcpy(message, "Ramaiah Institute of Technology");
-        else strcpy(message, "Information Science and Engineering");
-
-        /* Include the terminating null character. */
-        MPI_Send(message, (int)strlen(message) + 1, MPI_CHAR,
-                 0, 0, MPI_COMM_WORLD);
     }
-
+ 
     MPI_Finalize();
     return 0;
 }
